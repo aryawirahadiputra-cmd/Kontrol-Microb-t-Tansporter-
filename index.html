@@ -3,27 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Kontrol Micro:Bit</title>
-  <!-- Google Font & FontAwesome Icons -->
+  <title>Micro:Bit Control Hub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <style>
     :root {
-      --bg-color: #0f172a;
-      --card-bg: rgba(30, 41, 59, 0.7);
-      --card-border: rgba(255, 255, 255, 0.08);
+      --bg: #060a13;
+      --card: rgba(16, 23, 41, 0.72);
+      --border: rgba(148, 163, 184, 0.12);
       --primary: #38bdf8;
-      --primary-hover: #0284c7;
-      --danger: #f43f5e;
-      --danger-hover: #e11d48;
-      --success: #10b981;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent-temp: #f97316;
-      --accent-hum: #06b6d4;
+      --violet: #818cf8;
+      --success: #34d399;
+      --danger: #fb7185;
+      --warn: #fbbf24;
+      --temp: #fb923c;
+      --hum: #22d3ee;
+      --text: #eef2f9;
+      --muted: #8b98b4;
+      --mono: 'JetBrains Mono', monospace;
+      --radius: 20px;
     }
 
     * {
@@ -33,425 +35,437 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
       user-select: none;
       -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
+    ::selection { background: rgba(56, 189, 248, 0.35); }
+
     body {
-      background-color: var(--bg-color);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
-      color: var(--text-main);
+      background-color: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      padding: 20px;
+      padding: 24px 20px 32px;
+      overflow-x: hidden;
     }
 
-    /* --- HEADER --- */
+    button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+    /* ========== BACKGROUND DEKORATIF ========== */
+    .bg-decor { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.28; will-change: transform; }
+    .blob-1 { width: 520px; height: 520px; background: #0ea5e9; top: -160px; left: -140px; animation: drift1 20s ease-in-out infinite alternate; }
+    .blob-2 { width: 460px; height: 460px; background: #7c3aed; bottom: -160px; right: -120px; animation: drift2 24s ease-in-out infinite alternate; }
+    .blob-3 { width: 300px; height: 300px; background: #0891b2; top: 40%; left: 55%; opacity: 0.16; animation: drift1 28s ease-in-out infinite alternate-reverse; }
+    @keyframes drift1 { from { transform: translate(0,0) scale(1); } to { transform: translate(70px,50px) scale(1.15); } }
+    @keyframes drift2 { from { transform: translate(0,0) scale(1.1); } to { transform: translate(-60px,-50px) scale(1); } }
+
+    .grid-overlay {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px);
+      background-size: 44px 44px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 75%);
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 75%);
+    }
+
+    /* ========== HEADER ========== */
     header {
-      max-width: 1000px;
-      width: 100%;
-      margin: 0 auto 24px auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--card-border);
-      padding: 16px 24px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      max-width: 1040px; width: 100%;
+      margin: 0 auto 22px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      background: var(--card);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      padding: 16px 22px;
+      border-radius: var(--radius);
+      box-shadow: 0 12px 32px -12px rgba(0,0,0,0.5);
+      animation: fadeDown 0.5s ease both;
     }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
+    .brand { display: flex; align-items: center; gap: 14px; }
     .brand-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+      position: relative;
+      width: 46px; height: 46px; border-radius: 13px;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; color: #fff;
+      box-shadow: 0 6px 18px rgba(56,189,248,0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .brand-icon::after {
+      content: ''; position: absolute; inset: -4px; border-radius: 16px;
+      border: 1px solid rgba(56,189,248,0.35);
+      animation: ringPulse 3s ease-out infinite;
+    }
+    @keyframes ringPulse { 0% { opacity: 0.8; transform: scale(0.95); } 70%, 100% { opacity: 0; transform: scale(1.18); } }
+
+    .brand-text h1 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; }
+    .brand-text h1 span {
+      background: linear-gradient(90deg, #38bdf8, #a78bfa);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .brand-text p {
+      font-size: 0.7rem; color: var(--muted); font-weight: 600;
+      margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase;
     }
 
-    h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .connection-controls {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
+    .connection-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 
     .status-badge {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      background: rgba(255, 255, 255, 0.05);
-      padding: 6px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex; align-items: center; gap: 9px;
+      font-size: 0.8rem; font-weight: 600; color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      padding: 8px 16px; border-radius: 99px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+      max-width: 220px;
     }
-
+    .status-badge span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: var(--danger);
-      box-shadow: 0 0 10px var(--danger);
-      transition: all 0.3s ease;
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+      background: var(--danger); box-shadow: 0 0 8px var(--danger);
+      transition: all 0.3s;
     }
-
+    .status-badge.connected {
+      color: var(--success);
+      border-color: rgba(52,211,153,0.3);
+      background: rgba(52,211,153,0.08);
+    }
     .status-badge.connected .status-dot {
-      background-color: var(--success);
-      box-shadow: 0 0 10px var(--success);
+      background: var(--success); box-shadow: 0 0 10px var(--success);
       animation: pulse 2s infinite;
     }
-
     @keyframes pulse {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.6); }
+      70% { box-shadow: 0 0 0 8px rgba(52,211,153,0); }
+      100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
     }
 
     .btn-connect {
+      position: relative; overflow: hidden;
       background: linear-gradient(135deg, #0284c7, #38bdf8);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      border-radius: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+      color: #fff; border: none;
+      padding: 11px 22px; font-size: 0.88rem; font-weight: 700;
+      border-radius: 12px; cursor: pointer;
+      display: flex; align-items: center; gap: 9px;
+      box-shadow: 0 6px 18px rgba(56,189,248,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-
-    .btn-connect:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    .btn-connect::before {
+      content: ''; position: absolute; top: 0; left: -80%;
+      width: 45%; height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255,255,255,0.35), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.55s ease;
     }
-
-    .btn-connect:active {
-      transform: translateY(0);
-    }
-
+    .btn-connect:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(56,189,248,0.45), inset 0 1px 0 rgba(255,255,255,0.2); }
+    .btn-connect:hover::before { left: 130%; }
+    .btn-connect:active { transform: translateY(0) scale(0.98); }
     .btn-connect.disconnect {
-      background: linear-gradient(135deg, #e11d48, #f43f5e);
-      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.25);
+      background: linear-gradient(135deg, #e11d48, #fb7185);
+      box-shadow: 0 6px 18px rgba(251,113,133,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
     }
+    .btn-connect.disconnect:hover { box-shadow: 0 10px 26px rgba(251,113,133,0.45); }
+    .btn-connect:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
-    .btn-connect.disconnect:hover {
-      box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
-    }
-
-    /* --- MAIN DASHBOARD LAYOUT --- */
+    /* ========== LAYOUT ========== */
     main {
-      max-width: 1000px;
-      width: 100%;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      max-width: 1040px; width: 100%; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
     }
 
-    @media (max-width: 768px) {
-      main {
-        grid-template-columns: 1fr;
-      }
-      header {
-        flex-direction: column;
-        gap: 16px;
-        align-items: flex-start;
-      }
-      .connection-controls {
-        width: 100%;
-        justify-content: space-between;
-      }
-    }
-
-    /* --- CARDS GENERAL --- */
     .card {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
+      background: var(--card);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 16px 40px -16px rgba(0,0,0,0.5);
+      transition: border-color 0.3s;
+      animation: fadeUp 0.55s ease both;
     }
+    .card:hover { border-color: rgba(148,163,184,0.22); }
+    main .card:nth-child(1) { animation-delay: 0.08s; }
+    main .card:nth-child(2) { animation-delay: 0.16s; }
+    main .card:nth-child(3) { animation-delay: 0.24s; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 
     .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin-bottom: 20px; padding-bottom: 14px;
+      border-bottom: 1px solid rgba(148,163,184,0.1);
     }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--text-main);
-    }
-
+    .card-title { font-size: 1.02rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
     .card-title i {
-      color: var(--primary);
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 9px; background: rgba(56,189,248,0.12);
+      color: var(--primary); font-size: 0.85rem;
     }
+    .badge-mini {
+      font-size: 0.68rem; font-weight: 600; color: var(--muted);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      padding: 5px 11px; border-radius: 99px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .badge-mini i { color: var(--primary); font-size: 0.65rem; }
 
-    /* --- SENSOR CARDS GRID --- */
-    .sensor-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+    /* ========== SENSOR CARDS + GAUGE ========== */
+    .sensor-grid { display: flex; flex-direction: column; gap: 16px; }
 
     .sensor-card {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 14px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
+      background: rgba(8,12,24,0.55);
+      border: 1px solid rgba(148,163,184,0.1);
+      border-radius: 16px; padding: 18px 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
     }
-
-    .sensor-info {
-      display: flex;
-      align-items: center;
-      gap: 16px;
+    .sensor-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0.7;
     }
+    .sensor-temp::before { background: linear-gradient(90deg, transparent, var(--temp), transparent); }
+    .sensor-hum::before { background: linear-gradient(90deg, transparent, var(--hum), transparent); }
+    .sensor-card:hover { transform: translateY(-3px); }
+    .sensor-temp:hover { border-color: rgba(251,146,60,0.35); box-shadow: 0 12px 28px -10px rgba(251,146,60,0.25); }
+    .sensor-hum:hover { border-color: rgba(34,211,238,0.35); box-shadow: 0 12px 28px -10px rgba(34,211,238,0.25); }
 
+    .sensor-info { display: flex; align-items: center; gap: 15px; }
     .sensor-icon-bg {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
+      width: 50px; height: 50px; border-radius: 13px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
     }
+    .sensor-temp .sensor-icon-bg { background: rgba(251,146,60,0.14); color: var(--temp); box-shadow: inset 0 0 0 1px rgba(251,146,60,0.25); }
+    .sensor-hum .sensor-icon-bg { background: rgba(34,211,238,0.14); color: var(--hum); box-shadow: inset 0 0 0 1px rgba(34,211,238,0.25); }
 
-    .sensor-temp .sensor-icon-bg {
-      background: rgba(249, 115, 22, 0.15);
-      color: var(--accent-temp);
+    .sensor-meta { display: flex; flex-direction: column; gap: 5px; }
+    .sensor-label { font-size: 0.92rem; font-weight: 700; }
+    .sensor-desc { font-size: 0.72rem; color: var(--muted); }
+    .sensor-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); transition: color 0.3s;
     }
+    .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+    body.connected .sensor-chip { color: var(--success); }
+    body.connected .chip-dot { background: var(--success); box-shadow: 0 0 6px var(--success); animation: pulse 2s infinite; }
 
-    .sensor-hum .sensor-icon-bg {
-      background: rgba(6, 182, 212, 0.15);
-      color: var(--accent-hum);
+    .gauge { position: relative; width: 104px; height: 104px; flex-shrink: 0; }
+    .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .gauge-track { fill: none; stroke: rgba(148,163,184,0.12); stroke-width: 9; }
+    .gauge-fill {
+      fill: none; stroke-width: 9; stroke-linecap: round;
+      stroke-dasharray: 314.16; stroke-dashoffset: 314.16;
+      transition: stroke-dashoffset 0.7s cubic-bezier(0.34, 1.3, 0.5, 1);
     }
-
-    .sensor-meta {
-      display: flex;
-      flex-direction: column;
+    #fillSuhu { stroke: url(#gradTemp); filter: drop-shadow(0 0 5px rgba(251,146,60,0.55)); }
+    #fillKelembaban { stroke: url(#gradHum); filter: drop-shadow(0 0 5px rgba(34,211,238,0.55)); }
+    .gauge-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
-
-    .sensor-label {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
     .sensor-value {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-top: 2px;
+      font-family: var(--mono); font-size: 1.45rem; font-weight: 700;
+      letter-spacing: -0.03em; line-height: 1;
     }
+    .sensor-unit { font-size: 0.62rem; font-weight: 600; color: var(--muted); margin-top: 3px; letter-spacing: 0.06em; }
+    .sensor-value.bump { animation: bump 0.35s ease; }
+    @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
 
-    /* Gauge / Bar Minimalis */
-    .sensor-progress {
-      width: 80px;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 6px;
+    /* ========== KONTROLER D-PAD ========== */
+    .controller-wrapper { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+    .dpad-container { position: relative; display: inline-flex; margin-top: 6px; }
+    .dpad-container::before {
+      content: ''; position: absolute; inset: -13px; border-radius: 50%;
+      border: 1.5px dashed rgba(56,189,248,0.22);
+      animation: spin 26s linear infinite;
+      pointer-events: none;
     }
-
-    .sensor-progress-fill {
-      height: 100%;
-      width: 0%;
-      transition: width 0.5s ease;
-      border-radius: 3px;
-    }
-
-    .sensor-temp .sensor-progress-fill { background: var(--accent-temp); }
-    .sensor-hum .sensor-progress-fill { background: var(--accent-hum); }
-
-    /* --- CONTROLLER & GRIPPER --- */
-    .controller-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .dpad-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 10px 0;
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .dpad {
       display: grid;
-      grid-template-columns: repeat(3, 70px);
-      grid-template-rows: repeat(3, 70px);
-      gap: 12px;
-      background: rgba(15, 23, 42, 0.4);
-      padding: 16px;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+      grid-template-columns: repeat(3, 68px);
+      grid-template-rows: repeat(3, 68px);
+      gap: 10px;
+      background: radial-gradient(circle at 50% 40%, rgba(30,41,59,0.8), rgba(8,12,24,0.85));
+      padding: 18px; border-radius: 50%;
+      border: 1px solid rgba(148,163,184,0.12);
+      box-shadow: inset 0 3px 14px rgba(0,0,0,0.55), 0 10px 26px -10px rgba(0,0,0,0.5);
     }
-
     .dpad button {
-      width: 70px;
-      height: 70px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: linear-gradient(145deg, #1e293b, #0f172a);
-      color: var(--text-main);
-      font-size: 1.25rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      transition: all 0.1s ease;
-      outline: none;
+      width: 68px; height: 68px; border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.14);
+      background: linear-gradient(150deg, #24334d, #101828);
+      color: var(--text); font-size: 1.15rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09);
+      transition: all 0.12s ease; outline: none; touch-action: none;
     }
-
-    .dpad button:hover {
-      background: linear-gradient(145deg, #334155, #1e293b);
-      border-color: rgba(56, 189, 248, 0.4);
-      color: var(--primary);
-    }
-
+    .dpad button:hover { border-color: rgba(56,189,248,0.45); color: var(--primary); }
     .dpad button:active, .dpad button.active {
-      transform: scale(0.92);
-      background: var(--primary);
-      color: #0f172a;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
-      border-color: var(--primary);
+      transform: scale(0.9);
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: #06121f; border-color: transparent;
+      box-shadow: 0 0 22px rgba(56,189,248,0.6), inset 0 1px 0 rgba(255,255,255,0.35);
     }
+    .dpad .up    { grid-column: 2; grid-row: 1; border-radius: 18px 18px 8px 8px; }
+    .dpad .left  { grid-column: 1; grid-row: 2; border-radius: 18px 8px 8px 18px; }
+    .dpad .center{
+      grid-column: 2; grid-row: 2; border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(56,189,248,0.22), rgba(56,189,248,0.06));
+      border-color: rgba(56,189,248,0.35); color: var(--primary);
+    }
+    .dpad .right { grid-column: 3; grid-row: 2; border-radius: 8px 18px 18px 8px; }
+    .dpad .down  { grid-column: 2; grid-row: 3; border-radius: 8px 8px 18px 18px; }
 
-    .dpad .up    { grid-column: 2; grid-row: 1; border-radius: 20px 20px 8px 8px; }
-    .dpad .left  { grid-column: 1; grid-row: 2; border-radius: 20px 8px 8px 20px; }
-    .dpad .center{ 
-      grid-column: 2; 
-      grid-row: 2; 
-      border-radius: 50%; 
-      background: rgba(56, 189, 248, 0.1); 
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--primary);
-    }
-    .dpad .center:hover {
-      background: var(--primary);
-      color: #0f172a;
-    }
-    .dpad .right { grid-column: 3; grid-row: 2; border-radius: 8px 20px 20px 8px; }
-    .dpad .down  { grid-column: 2; grid-row: 3; border-radius: 8px 8px 20px 20px; }
-
-    /* Tombol Gripper (Grip & Release) */
-    .gripper-controls {
-      display: flex;
-      gap: 12px;
-      width: 100%;
-      justify-content: center;
-      margin-top: 8px;
-    }
+    /* ========== TOMBOL GRIPPER ========== */
+    .gripper-controls { display: flex; gap: 12px; width: 100%; justify-content: center; }
 
     .btn-action {
-      flex: 1;
-      max-width: 130px;
-      padding: 12px 16px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: linear-gradient(145deg, #1e293b, #0f172a);
-      color: var(--text-main);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      transition: all 0.15s ease;
+      flex: 1; max-width: 150px;
+      padding: 13px 16px; font-size: 0.9rem; font-weight: 700;
+      border-radius: 13px; border: 1px solid rgba(148,163,184,0.14);
+      background: linear-gradient(150deg, #24334d, #101828);
+      color: var(--text); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.09);
+      transition: all 0.15s ease; touch-action: none;
+    }
+    .btn-action[data-action="grip"]:hover { border-color: rgba(52,211,153,0.5); color: var(--success); transform: translateY(-2px); }
+    .btn-action[data-action="release"]:hover { border-color: rgba(251,191,36,0.5); color: var(--warn); transform: translateY(-2px); }
+    .btn-action[data-action="grip"]:active, .btn-action[data-action="grip"].active {
+      transform: scale(0.94);
+      background: linear-gradient(135deg, #059669, #34d399);
+      color: #06121f; border-color: transparent;
+      box-shadow: 0 0 20px rgba(52,211,153,0.5);
+    }
+    .btn-action[data-action="release"]:active, .btn-action[data-action="release"].active {
+      transform: scale(0.94);
+      background: linear-gradient(135deg, #d97706, #fbbf24);
+      color: #06121f; border-color: transparent;
+      box-shadow: 0 0 20px rgba(251,191,36,0.5);
     }
 
-    .btn-action:hover {
-      border-color: rgba(56, 189, 248, 0.4);
-      color: var(--primary);
-      transform: translateY(-2px);
+    /* ========== HINT KEYBOARD ========== */
+    .hints { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: center; }
+    .hint { font-size: 0.7rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    kbd {
+      font-family: var(--mono); font-size: 0.62rem; font-weight: 600; color: var(--text);
+      background: rgba(148,163,184,0.12);
+      border: 1px solid rgba(148,163,184,0.2); border-bottom-width: 2px;
+      border-radius: 5px; padding: 2px 6px;
     }
 
-    .btn-action:active, .btn-action.active {
-      transform: scale(0.95);
-      background: var(--primary);
-      color: #0f172a;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
-    }
+    /* ========== LOG TERMINAL ========== */
+    .log-card { grid-column: 1 / -1; }
 
-    /* --- LOG CONSOLE --- */
-    .log-card {
-      grid-column: 1 / -1;
+    .btn-clear {
+      font-size: 0.72rem; font-weight: 600; color: var(--muted);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      padding: 6px 13px; border-radius: 9px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: all 0.2s;
     }
+    .btn-clear:hover { color: var(--danger); border-color: rgba(251,113,133,0.4); background: rgba(251,113,133,0.08); }
+
+    .terminal { border-radius: 14px; overflow: hidden; border: 1px solid rgba(148,163,184,0.12); }
+    .terminal-bar {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(15,23,42,0.9); padding: 10px 14px;
+      border-bottom: 1px solid rgba(148,163,184,0.1);
+    }
+    .tdot { width: 11px; height: 11px; border-radius: 50%; }
+    .tdot.red { background: #f87171; } .tdot.yellow { background: #fbbf24; } .tdot.green { background: #34d399; }
+    .terminal-title { margin-left: 8px; font-family: var(--mono); font-size: 0.68rem; color: var(--muted); }
 
     .log-box {
-      background: #090d16;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      padding: 12px 16px;
-      height: 100px;
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 0.825rem;
-      color: var(--text-muted);
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      background: #05080f;
+      padding: 14px 16px; height: 130px;
+      font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+      overflow-y: auto; display: flex; flex-direction: column; gap: 5px;
+      user-select: text; -webkit-user-select: text;
     }
+    .log-box::-webkit-scrollbar { width: 7px; }
+    .log-box::-webkit-scrollbar-track { background: transparent; }
+    .log-box::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.22); border-radius: 4px; }
+    .log-box::-webkit-scrollbar-thumb:hover { background: rgba(56,189,248,0.4); }
 
-    .log-entry {
-      line-height: 1.4;
-    }
+    .log-entry { line-height: 1.5; animation: logIn 0.25s ease both; word-break: break-word; }
+    @keyframes logIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+    .log-time { color: rgba(139,152,180,0.5); }
     .log-entry.info { color: var(--primary); }
     .log-entry.error { color: var(--danger); }
     .log-entry.success { color: var(--success); }
+    .log-entry.warn { color: var(--warn); }
+
+    /* ========== FOOTER ========== */
+    footer {
+      max-width: 1040px; width: 100%; margin: 22px auto 0;
+      text-align: center; font-size: 0.72rem; color: rgba(139,152,180,0.6);
+      display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+    }
+    footer i { color: var(--primary); font-size: 0.65rem; }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 820px) {
+      main { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: stretch; }
+      .brand { justify-content: center; }
+      .connection-controls { justify-content: space-between; }
+    }
+    @media (max-width: 480px) {
+      .dpad { grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(3, 60px); gap: 8px; padding: 14px; }
+      .dpad button { width: 60px; height: 60px; }
+      .gauge { width: 92px; height: 92px; }
+      .sensor-card { padding: 15px; }
+      .brand-text h1 { font-size: 1.05rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
 
+<!-- Background dekoratif -->
+<div class="bg-decor" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="grid-overlay"></div>
+</div>
+
+<!-- Definisi gradien untuk gauge SVG -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gradTemp" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#fb7185"/>
+    </linearGradient>
+    <linearGradient id="gradHum" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+</svg>
+
 <header>
   <div class="brand">
-    <div class="brand-icon">
-      <i class="fa-solid fa-microchip"></i>
+    <div class="brand-icon"><i class="fa-solid fa-microchip"></i></div>
+    <div class="brand-text">
+      <h1>Micro:Bit <span>Control Hub</span></h1>
+      <p>Dashboard Robot &amp; Monitoring</p>
     </div>
-    <h1>Kontrol Micro:Bit</h1>
   </div>
   <div class="connection-controls">
     <div class="status-badge" id="statusBadge">
@@ -460,7 +474,7 @@
     </div>
     <button id="connectBtn" class="btn-connect">
       <i class="fa-brands fa-bluetooth-b"></i>
-      <span>Hubungkan Bluetooth</span>
+      <span>Hubungkan</span>
     </button>
   </div>
 </header>
@@ -473,38 +487,51 @@
         <i class="fa-solid fa-chart-simple"></i>
         <span>Monitoring Sensor</span>
       </div>
+      <span class="badge-mini"><i class="fa-solid fa-tower-broadcast"></i> UART Live</span>
     </div>
-    
+
     <div class="sensor-grid">
       <!-- Temperature Card -->
       <div class="sensor-card sensor-temp">
         <div class="sensor-info">
-          <div class="sensor-icon-bg">
-            <i class="fa-solid fa-temperature-half"></i>
-          </div>
+          <div class="sensor-icon-bg"><i class="fa-solid fa-temperature-half"></i></div>
           <div class="sensor-meta">
             <span class="sensor-label">Suhu</span>
-            <span class="sensor-value" id="valSuhu">-- °C</span>
+            <span class="sensor-desc">Skala 0 – 50 °C</span>
+            <span class="sensor-chip"><span class="chip-dot"></span>Live</span>
           </div>
         </div>
-        <div class="sensor-progress">
-          <div class="sensor-progress-fill" id="fillSuhu"></div>
+        <div class="gauge">
+          <svg viewBox="0 0 120 120">
+            <circle class="gauge-track" cx="60" cy="60" r="50"></circle>
+            <circle class="gauge-fill" id="fillSuhu" cx="60" cy="60" r="50"></circle>
+          </svg>
+          <div class="gauge-center">
+            <span class="sensor-value" id="valSuhu">--</span>
+            <span class="sensor-unit">°C</span>
+          </div>
         </div>
       </div>
 
       <!-- Humidity Card -->
       <div class="sensor-card sensor-hum">
         <div class="sensor-info">
-          <div class="sensor-icon-bg">
-            <i class="fa-solid fa-droplet"></i>
-          </div>
+          <div class="sensor-icon-bg"><i class="fa-solid fa-droplet"></i></div>
           <div class="sensor-meta">
             <span class="sensor-label">Kelembaban</span>
-            <span class="sensor-value" id="valKelembaban">-- %</span>
+            <span class="sensor-desc">Skala 0 – 100 %</span>
+            <span class="sensor-chip"><span class="chip-dot"></span>Live</span>
           </div>
         </div>
-        <div class="sensor-progress">
-          <div class="sensor-progress-fill" id="fillKelembaban"></div>
+        <div class="gauge">
+          <svg viewBox="0 0 120 120">
+            <circle class="gauge-track" cx="60" cy="60" r="50"></circle>
+            <circle class="gauge-fill" id="fillKelembaban" cx="60" cy="60" r="50"></circle>
+          </svg>
+          <div class="gauge-center">
+            <span class="sensor-value" id="valKelembaban">--</span>
+            <span class="sensor-unit">%</span>
+          </div>
         </div>
       </div>
     </div>
@@ -515,22 +542,22 @@
     <div class="card-header">
       <div class="card-title">
         <i class="fa-solid fa-gamepad"></i>
-        <span>Kontrol Arah & Gripper</span>
+        <span>Kontrol Arah &amp; Gripper</span>
       </div>
+      <span class="badge-mini"><i class="fa-solid fa-keyboard"></i> Keyboard aktif</span>
     </div>
-    
+
     <div class="controller-wrapper">
       <div class="dpad-container">
         <div class="dpad">
-          <button class="up" data-action="up" title="Maju"><i class="fa-solid fa-chevron-up"></i></button>
-          <button class="left" data-action="left" title="Kiri"><i class="fa-solid fa-chevron-left"></i></button>
-          <button class="center" data-action="horn" title="Klakson"><i class="fa-solid fa-bullhorn"></i></button>
-          <button class="right" data-action="right" title="Kanan"><i class="fa-solid fa-chevron-right"></i></button>
-          <button class="down" data-action="down" title="Mundur"><i class="fa-solid fa-chevron-down"></i></button>
+          <button class="up" data-action="up" title="Maju" aria-label="Maju"><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="left" data-action="left" title="Kiri" aria-label="Kiri"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="center" data-action="horn" title="Klakson" aria-label="Klakson"><i class="fa-solid fa-bullhorn"></i></button>
+          <button class="right" data-action="right" title="Kanan" aria-label="Kanan"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="down" data-action="down" title="Mundur" aria-label="Mundur"><i class="fa-solid fa-chevron-down"></i></button>
         </div>
       </div>
 
-      <!-- Tombol Grip & Release -->
       <div class="gripper-controls">
         <button class="btn-action" data-action="grip" title="Jepit">
           <i class="fa-solid fa-hand-back-fist"></i> Grip
@@ -538,6 +565,13 @@
         <button class="btn-action" data-action="release" title="Lepas">
           <i class="fa-solid fa-hand"></i> Release
         </button>
+      </div>
+
+      <div class="hints">
+        <span class="hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / panah : gerak</span>
+        <span class="hint"><kbd>H</kbd> klakson</span>
+        <span class="hint"><kbd>G</kbd> grip</span>
+        <span class="hint"><kbd>R</kbd> lepas</span>
       </div>
     </div>
   </section>
@@ -549,95 +583,166 @@
         <i class="fa-solid fa-terminal"></i>
         <span>Aktivitas Sistem</span>
       </div>
+      <button class="btn-clear" id="clearLog"><i class="fa-solid fa-trash-can"></i> Bersihkan</button>
     </div>
-    <div class="log-box" id="logBox">
-      <div class="log-entry">[Sistem Siap] Silakan hubungkan Micro:Bit via Bluetooth.</div>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="tdot red"></span>
+        <span class="tdot yellow"></span>
+        <span class="tdot green"></span>
+        <span class="terminal-title">microbit-uart — Nordic UART Service</span>
+      </div>
+      <div class="log-box" id="logBox">
+        <div class="log-entry"><span class="log-time">[Boot]</span> Dashboard siap. Silakan hubungkan Micro:Bit via Bluetooth.</div>
+      </div>
     </div>
   </section>
 </main>
 
+<footer>
+  <i class="fa-brands fa-bluetooth-b"></i>
+  Web Bluetooth API &nbsp;•&nbsp; Nordic UART Service &nbsp;•&nbsp; BBC micro:bit
+</footer>
+
 <script>
+  // ===== Konfigurasi BLE UART (Nordic UART Service) =====
   const UART_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-  const RX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
-  const TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+  const RX_UUID      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // notifikasi dari micro:bit
+  const TX_UUID      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // kirim ke micro:bit
+  const GAUGE_C      = 2 * Math.PI * 50; // keliling lingkaran gauge (r = 50)
 
   let bleDevice = null;
   let txChar = null;
   let isConnected = false;
   let isConnecting = false;
 
-  const statusEl      = document.getElementById('status');
-  const statusBadge   = document.getElementById('statusBadge');
-  const connectBtn    = document.getElementById('connectBtn');
-  const valSuhu       = document.getElementById('valSuhu');
-  const valKelembaban = document.getElementById('valKelembaban');
-  const fillSuhu      = document.getElementById('fillSuhu');
-  const fillKelembaban= document.getElementById('fillKelembaban');
-  const logBox        = document.getElementById('logBox');
+  const statusEl       = document.getElementById('status');
+  const statusBadge    = document.getElementById('statusBadge');
+  const connectBtn     = document.getElementById('connectBtn');
+  const valSuhu        = document.getElementById('valSuhu');
+  const valKelembaban  = document.getElementById('valKelembaban');
+  const fillSuhu       = document.getElementById('fillSuhu');
+  const fillKelembaban = document.getElementById('fillKelembaban');
+  const logBox         = document.getElementById('logBox');
+  const clearLogBtn    = document.getElementById('clearLog');
 
+  const DIRECTIONS = ['up', 'down', 'left', 'right'];
+
+  // ===== Log =====
   function addLog(msg, type = '') {
-    const time = new Date().toLocaleTimeString();
+    const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
     const entry = document.createElement('div');
     entry.className = `log-entry ${type}`;
-    entry.textContent = `[${time}] ${msg}`;
+    entry.innerHTML = `<span class="log-time">[${time}]</span> ${msg}`;
     logBox.appendChild(entry);
+    while (logBox.children.length > 150) logBox.removeChild(logBox.firstChild);
     logBox.scrollTop = logBox.scrollHeight;
   }
 
+  clearLogBtn.addEventListener('click', () => {
+    logBox.innerHTML = '';
+    addLog('Log dibersihkan.', 'info');
+  });
+
+  // ===== Gauge & Nilai Sensor =====
+  function setGauge(fillEl, pct) {
+    const clamped = Math.min(Math.max(pct, 0), 100);
+    fillEl.style.strokeDashoffset = (GAUGE_C * (1 - clamped / 100)).toFixed(2);
+  }
+
+  function bump(el) {
+    el.classList.remove('bump');
+    void el.offsetWidth; // restart animasi
+    el.classList.add('bump');
+  }
+
+  function resetSensors() {
+    valSuhu.textContent = '--';
+    valKelembaban.textContent = '--';
+    setGauge(fillSuhu, 0);
+    setGauge(fillKelembaban, 0);
+  }
+
+  function handleSensorData(val) {
+    const parts = val.split(':');
+    if (parts.length !== 2) return;
+    const key = parts[0].trim().toLowerCase();
+    const num = parseFloat(parts[1]);
+    if (isNaN(num)) return;
+
+    if (key === 'suhu') {
+      valSuhu.textContent = num;
+      setGauge(fillSuhu, (num / 50) * 100); // skala 0–50 °C
+      bump(valSuhu);
+    } else if (key === 'kelembaban') {
+      valKelembaban.textContent = num;
+      setGauge(fillKelembaban, num); // skala 0–100 %
+      bump(valKelembaban);
+    }
+  }
+
+  // ===== Kirim perintah UART =====
   async function sendUART(data) {
-    if (!txChar) return;
+    if (!txChar) {
+      addLog(`Perintah "${data}" diabaikan — belum terhubung.`, 'warn');
+      return;
+    }
     try {
       await txChar.writeValue(new TextEncoder().encode(data + '\n'));
-      addLog(`Perintah dikirim: "${data}"`);
+      addLog(`→ TX: "${data}"`, 'info');
     } catch (e) {
       console.error('TX Error:', e);
       addLog(`Gagal mengirim data: ${e.message}`, 'error');
     }
   }
 
+  // ===== Update tampilan koneksi =====
   function updateUI(connected) {
+    const wasConnected = isConnected;
     isConnected = connected;
-    statusEl.textContent = connected ? 'Terhubung' : 'Terputus';
-    
+    statusEl.textContent = connected ? (bleDevice?.name || 'Terhubung') : 'Terputus';
+    document.body.classList.toggle('connected', connected);
+
     if (connected) {
       statusBadge.classList.add('connected');
       connectBtn.classList.add('disconnect');
       connectBtn.innerHTML = `<i class="fa-solid fa-plug-circle-xmark"></i><span>Putuskan</span>`;
-      addLog('Perangkat Micro:Bit terhubung!', 'success');
+      addLog('✓ Micro:Bit terhubung via BLE UART!', 'success');
     } else {
       statusBadge.classList.remove('connected');
       connectBtn.classList.remove('disconnect');
-      connectBtn.innerHTML = `<i class="fa-brands fa-bluetooth-b"></i><span>Hubungkan Bluetooth</span>`;
-      valSuhu.textContent = '-- °C';
-      valKelembaban.textContent = '-- %';
-      fillSuhu.style.width = '0%';
-      fillKelembaban.style.width = '0%';
-      addLog('Koneksi terputus.', 'error');
+      connectBtn.innerHTML = `<i class="fa-brands fa-bluetooth-b"></i><span>Hubungkan</span>`;
+      resetSensors();
+      if (wasConnected) addLog('Koneksi terputus.', 'error');
     }
   }
 
+  // ===== Tombol Hubungkan / Putuskan =====
   connectBtn.addEventListener('click', async () => {
     if (isConnected) {
       if (bleDevice && bleDevice.gatt) bleDevice.gatt.disconnect();
       return;
     }
     if (isConnecting) return;
+    if (!('bluetooth' in navigator)) {
+      addLog('Web Bluetooth tidak didukung browser ini. Gunakan Chrome/Edge via HTTPS.', 'error');
+      return;
+    }
     isConnecting = true;
 
     try {
-      addLog('Mencari perangkat Micro:Bit...');
+      addLog('Mencari perangkat BBC micro:bit…');
       bleDevice = await navigator.bluetooth.requestDevice({
         filters: [{ namePrefix: 'BBC micro:bit' }],
         optionalServices: [UART_SERVICE]
       });
 
       bleDevice.addEventListener('gattserverdisconnected', () => {
-        isConnected = false;
         txChar = null;
         updateUI(false);
       });
 
-      addLog('Menghubungkan ke GATT Server...');
+      addLog('Menghubungkan ke GATT server…');
       const server = await bleDevice.gatt.connect();
       const service = await server.getPrimaryService(UART_SERVICE);
 
@@ -645,57 +750,53 @@
       await rxChar.startNotifications();
       rxChar.addEventListener('characteristicvaluechanged', (e) => {
         const val = new TextDecoder().decode(e.target.value).trim();
-        if (!val) return;
-        
-        const parts = val.split(':');
-        if (parts.length === 2) {
-          const key = parts[0].toLowerCase();
-          const num = parseFloat(parts[1]);
-          if (!isNaN(num)) {
-            if (key === 'suhu') {
-              valSuhu.textContent = num + ' °C';
-              const pct = Math.min(Math.max((num / 50) * 100, 0), 100);
-              fillSuhu.style.width = pct + '%';
-            } else if (key === 'kelembaban') {
-              valKelembaban.textContent = num + ' %';
-              const pct = Math.min(Math.max(num, 0), 100);
-              fillKelembaban.style.width = pct + '%';
-            }
-          }
-        }
+        if (val) handleSensorData(val);
       });
 
       txChar = await service.getCharacteristic(TX_UUID);
       updateUI(true);
     } catch (err) {
       console.error(err);
-      addLog('Gagal terhubung: ' + err.message, 'error');
+      if (err.name === 'NotFoundError') {
+        addLog('Pemilihan perangkat dibatalkan.', 'warn');
+      } else {
+        addLog('Gagal terhubung: ' + err.message, 'error');
+      }
       updateUI(false);
     } finally {
       isConnecting = false;
     }
   });
 
-  // Event listener untuk semua tombol kontrol (D-pad dan Gripper)
+  // ===== Helper tombol kontrol =====
+  function activateButton(btn, action) {
+    btn.classList.add('active');
+    sendUART(action);
+  }
+
+  function deactivateButton(btn, action) {
+    if (!btn.classList.contains('active')) return;
+    btn.classList.remove('active');
+    // Hanya tombol arah yang mengirim 'stop' saat dilepas
+    if (DIRECTIONS.includes(action)) sendUART('stop');
+  }
+
+  // ===== Event pointer untuk D-pad & Gripper =====
   document.querySelectorAll('button[data-action]').forEach(btn => {
     const action = btn.dataset.action;
 
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+
     btn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      btn.classList.add('active');
-      sendUART(action);
-      if (btn.setPointerCapture) btn.setPointerCapture(e.pointerId);
+      activateButton(btn, action);
+      if (btn.setPointerCapture) {
+        try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+      }
     });
 
     const stop = (e) => {
-      btn.classList.remove('active');
-      
-      // Untuk tombol D-pad arah (up/down/left/right), kirim perintah 'stop' saat dilepas.
-      // Untuk grip / release / horn tidak dikirim 'stop' agar posisinya tetap di tempat.
-      if (['up', 'down', 'left', 'right'].includes(action)) {
-        sendUART('stop');
-      }
-
+      deactivateButton(btn, action);
       if (e && e.pointerId != null && btn.hasPointerCapture && btn.hasPointerCapture(e.pointerId)) {
         btn.releasePointerCapture(e.pointerId);
       }
@@ -706,31 +807,38 @@
     btn.addEventListener('pointerleave', stop);
   });
 
+  // ===== Kontrol keyboard =====
+  const keyMap = {
+    ArrowUp: 'up',    KeyW: 'up',
+    ArrowDown: 'down',KeyS: 'down',
+    ArrowLeft: 'left',KeyA: 'left',
+    ArrowRight: 'right', KeyD: 'right',
+    KeyH: 'horn',
+    KeyG: 'grip',
+    KeyR: 'release'
+  };
+
+  document.addEventListener('keydown', (e) => {
+    const action = keyMap[e.code];
+    if (!action || e.repeat) return;
+    if (e.code.startsWith('Arrow')) e.preventDefault();
+    const btn = document.querySelector(`button[data-action="${action}"]`);
+    if (btn) activateButton(btn, action);
+  });
+
+  document.addEventListener('keyup', (e) => {
+    const action = keyMap[e.code];
+    if (!action) return;
+    const btn = document.querySelector(`button[data-action="${action}"]`);
+    if (btn) deactivateButton(btn, action);
+  });
+
+  // ===== Inisialisasi =====
   updateUI(false);
+  if (!('bluetooth' in navigator)) {
+    connectBtn.disabled = true;
+    addLog('Web Bluetooth tidak tersedia. Gunakan Chrome/Edge di HTTPS atau localhost.', 'warn');
+  }
 </script>
 </body>
 </html>
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
-    }
-
-    .btn-connect:active {
-      transform: translateY(0);
-    }
-
-    .btn-connect.disconnect {
-      background: linear-gradient(135deg, #e11d48, #f43f5e);
-      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.25);
-    }
-
-    .btn-connect.disconnect:hover {
-      box-shadow: 0 6px 20px rgba(244, 63, 94, 0.4);
-    }
-
-    /* --- MAIN DASHBOARD LAYOUT --- */
-    main {
-      max-width: 1000px;
-      width: 100%;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr
